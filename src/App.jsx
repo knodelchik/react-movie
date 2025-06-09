@@ -3,6 +3,7 @@ import './App.css'
 import Search from './components/Search'
 import Spiner from './components/Spiner'
 import MovieCard from './components/MovieCard';
+import Modal from './components/Modal';
 import { useDebounce } from 'react-use';
 import { getTrendingMovies, updateSearchCount } from './appwrite';
 
@@ -20,18 +21,57 @@ const API_OPTIONS = {
 
 function App() {
 
+
+  const [isOpenedModal, setIsOpenedModal] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [movieList, setMovieList] = useState([]);
+  const [movieDetails, setMovieDetails] = useState([]);
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  const openModal = (movie) => {
+    setSelectedMovie(movie);
+    setIsOpenedModal(true);
+  }
+
+  const closeModal = () => {
+    setIsOpenedModal(false);
+    setSelectedMovie([]);
+  }
 
   useDebounce(() => {
     if (searchTerm !== debouncedSearchTerm) {
       setDebouncedSearchTerm(searchTerm);
     }
   }, 500, [searchTerm]);
+
+  const fetchMovieDetails = async (movieID = null) => {
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/movie/${movieID}`, API_OPTIONS)
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+
+      if (data.response === 'False') {
+        setErrorMessage(data.Error || 'Failed to fetch movie details. Please try again later.');
+        setMovieDetails([]);
+        return;
+      }
+
+      setMovieDetails(data);
+
+    } catch (error) {
+      console.error('Error fetching movie details:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const fetchMovies = async (query = '') => {
     setIsLoading(true);
@@ -81,8 +121,25 @@ function App() {
   }, [debouncedSearchTerm])
 
   useEffect(() => {
+      if (selectedMovie.id) {
+         fetchMovieDetails(selectedMovie.id);
+
+      }
+  }, [selectedMovie]);
+
+
+  useEffect(() => {
     loadTrendingMovies();
   }, []);
+
+  useEffect(() => {
+    if (isOpenedModal) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+  }, [isOpenedModal]);
+
 
   return (
     <>
@@ -118,13 +175,17 @@ function App() {
               ) : errorMessage ? (<p className='text-red-500'>{errorMessage}</p>) :
                 <ul>
                   {movieList.map((movie) => (
-                    <MovieCard key={movie.id} movie={movie} />
+                    <MovieCard openModal={openModal} key={movie.id} movie={movie} />
                   ))}
                 </ul>}
             </section>
           </div>
         </div>
       </main>
+      {isOpenedModal && (
+        <Modal onClick={() => setIsOpenedModal(true)} details={movieDetails} closeModal={closeModal} isLoading={isLoading}/>
+      )}
+
     </>
   )
 };
