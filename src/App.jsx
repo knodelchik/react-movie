@@ -27,6 +27,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [movieList, setMovieList] = useState([]);
+  const [trailerURL, setTrailerURL] = useState(null);
   const [movieDetails, setMovieDetails] = useState([]);
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,30 +49,31 @@ function App() {
     }
   }, 500, [searchTerm]);
 
+  
+
   const fetchMovieDetails = async (movieID = null) => {
-    setIsLoading(true);
-    setErrorMessage('');
-    try {
-      const response = await fetch(`${API_BASE_URL}/movie/${movieID}`, API_OPTIONS)
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
+  setIsLoading(true);
+  setErrorMessage('');
+  try {
+    const response = await fetch(`${API_BASE_URL}/movie/${movieID}`, API_OPTIONS);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
 
-      if (data.response === 'False') {
-        setErrorMessage(data.Error || 'Failed to fetch movie details. Please try again later.');
-        setMovieDetails([]);
-        return;
-      }
+    const videoRes = await fetch(`${API_BASE_URL}/movie/${movieID}/videos`, API_OPTIONS);
+    const videoData = await videoRes.json();
+    const trailer = videoData.results.find(v =>
+      v.type === 'Trailer' && v.site === 'YouTube'
+    );
 
-      setMovieDetails(data);
+    setMovieDetails({ ...data, trailerKey: trailer?.key || null });
 
-    } catch (error) {
-      console.error('Error fetching movie details:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  } catch (error) {
+    console.error('Error fetching movie details:', error);
+  } finally {
+    setIsLoading(false);
   }
+};
+
 
   const fetchMovies = async (query = '') => {
     setIsLoading(true);
@@ -123,7 +125,6 @@ function App() {
   useEffect(() => {
       if (selectedMovie.id) {
          fetchMovieDetails(selectedMovie.id);
-
       }
   }, [selectedMovie]);
 

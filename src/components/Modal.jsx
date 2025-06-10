@@ -38,26 +38,30 @@ const Modal = ({ closeModal, details, isLoading }) => {
                             </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row gap-4 mb-6">
-                            <div className="w-[60vw]">
+                        <div className="flex justify-center flex-col md:flex-row ">
+                            <div className="max-w-1/3">
                                 <img
                                     src={details.poster_path ? `https://image.tmdb.org/t/p/w500/${details.poster_path}` : '/no-movie.png'} alt={`${details.title} poster`}
-                                    className="w-1/3 md:w-1/3 rounded-xl object-cover"
+                                    className="max-xs:w-6/6 xs:w-8/9 rounded-xl object-cover shadow-[0px_12px_32px_0px_rgba(206,_206,_251,_0.2),_0px_0px_100px_0px_rgba(171,_139,_255,_0.01)]"
                                 />
                             </div>
-                            <div className="w-full md:w-2/3">
-                                <img
-                                    src="https://via.placeholder.com/600x300?text=Backdrop"
-                                    alt="Backdrop"
-                                    className="w-full rounded-xl object-cover mb-3"
-                                />
-                                <button className="bg-white/10 border border-white/20 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-lg transition">
-                                    ▶ Trailer · 0:31
-                                </button>
-                            </div>
+                            {details.trailerKey ? (
+                                <div className="aspect-video w-full h-full">
+                                    <iframe
+                                        src={`https://www.youtube.com/embed/${details.trailerKey}`}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        className="max-xs:w-4/9 max=xs:4-5/9  xs:h-8/9  xs:w-8/9 rounded-xl shadow-[0px_12px_32px_0px_rgba(206,_206,_251,_0.2),_0px_0px_100px_0px_rgba(171,_139,_255,_0.01)]"
+                                        title="Trailer"
+                                    ></iframe>
+                                </div>
+                            ) : (
+                                <p className="">No available trailers found</p>
+                            )}
+
                         </div>
 
-                        <div className="grid grid-cols-[22ch_1fr] gap-y-4 text-sm text-[#D6C7FF] font-semibold">
+                        <div className="grid max-sm:grid-cols-1 sm:grid-cols-[22ch_1fr] gap-y-4 text-sm text-[#D6C7FF] font-semibold">
                             <div className="font-medium text-[#A8B5DB]">Genres</div>
                             <div className="flex justify-between items-center flex-wrap gap-y-2 w-full">
                                 <div className="flex gap-2 flex-wrap">
